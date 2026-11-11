@@ -1,0 +1,2 @@
+# ReCOINizer
+KI Münzerkennungsprojekt 
