@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReCOINizer</title>
+<style>
+:root{--filz:#1f4d3f;--grund:#f1f3ef;--tinte:#18231e;--linie:#d3dad2;--messing:#9a6f12;--fehler:#a3281f;--weiss:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--grund);color:var(--tinte);font:16px/1.5 "Segoe UI",system-ui,sans-serif}
+header{background:var(--filz);color:var(--weiss);padding:1.25rem 1.5rem}
+header h1{margin:0;font-size:1.5rem;letter-spacing:.01em}
+header p{margin:.15rem 0 0;opacity:.8;font-size:.95rem}
+main{max-width:62rem;margin:0 auto;padding:1.5rem}
+form{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin-bottom:1.5rem}
+input[type=file]{flex:1 1 16rem;padding:.6rem;background:var(--weiss);border:1px solid var(--linie);border-radius:6px;font:inherit}
+button{padding:.65rem 1.4rem;background:var(--filz);color:var(--weiss);border:0;border-radius:6px;font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:#17392f}button:disabled{opacity:.6;cursor:wait}
+:focus-visible{outline:3px solid var(--messing);outline-offset:2px}
+.fehler{padding:.8rem 1rem;margin-bottom:1.25rem;border-left:4px solid var(--fehler);background:#fbeceb;color:var(--fehler)}
+.hinweis{padding:.8rem 1rem;margin-top:1rem;border-left:4px solid var(--messing);background:#f6efdc}
+.ergebnis{display:grid;grid-template-columns:3fr 2fr;gap:1.5rem;align-items:start}
+@media(max-width:46rem){.ergebnis{grid-template-columns:1fr}}
+.ergebnis img{width:100%;height:auto;border-radius:6px;border:1px solid var(--linie);background:var(--weiss)}
+table{width:100%;border-collapse:collapse;background:var(--weiss);border:1px solid var(--linie)}
+th,td{padding:.6rem .8rem;text-align:right;border-bottom:1px solid var(--linie)}
+th:first-child,td:first-child{text-align:left}
+thead th{background:#e6ebe4;font-weight:600}
+tfoot td{border-bottom:0;border-top:2px solid var(--filz);font-weight:700}
+.summe{font-size:1.6rem;color:var(--messing)}
+.leer{padding:1rem;background:var(--weiss);border:1px solid var(--linie)}
+</style>
+</head>
+<body>
+<header>
+  <h1>ReCOINizer</h1>
+  <p>Münzen auf einem Foto zählen und den Gesamtwert berechnen</p>
+</header>
+<main>
+  <form method="post" enctype="multipart/form-data" id="upload">
+    <input type="file" name="bild" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required aria-label="Bild auswählen">
+    <button type="submit">Münzen zählen</button>
+  </form>
+
+  {% if fehler %}<div class="fehler" role="alert">{{ fehler }}</div>{% endif %}
+
+  {% if ergebnis %}
+  <section class="ergebnis" aria-label="Ergebnis">
+    <img src="{{ url_for('ergebnisbild', dateiname=bild) }}" alt="Foto mit markierten Münzen">
+    <div>
+      {% if ergebnis.positionen %}
+      <table>
+        <thead><tr><th>Münzart</th><th>Anzahl</th><th>Wert</th></tr></thead>
+        <tbody>
+          {% for p in ergebnis.positionen %}
+          <tr><td>{{ p.bezeichnung }}</td><td>{{ p.anzahl }}</td><td>{{ p.summe_cent | euro }}</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot><tr><td>Gesamt</td><td>{{ ergebnis.gesamt_anzahl }}</td><td class="summe">{{ ergebnis.gesamt_cent | euro }}</td></tr></tfoot>
+      </table>
+      {% else %}
+      <div class="leer">Keine Münzen erkannt. Versuche ein Foto mit besserem Licht und einem ruhigen Hintergrund.</div>
+      {% endif %}
+      {% if ergebnis.unbekannt %}
+      <div class="hinweis">Nicht gewertet, weil der Nennwert unbekannt ist: {{ ergebnis.unbekannt | join(', ') }}</div>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+</main>
+<script>
+document.getElementById('upload').addEventListener('submit', function(){
+  var b = this.querySelector('button'); b.disabled = true; b.textContent = 'Wird analysiert …';
+});
+</script>
+</body>
+</html>

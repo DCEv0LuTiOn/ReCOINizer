@@ -1,5 +1,9 @@
+"""Startet die ReCOINizer-Webanwendung auf http://127.0.0.1:5000"""
+from app import app
+
+
 def main():
-    print("Hello from recoinizer!")
+    app.run(host="127.0.0.1", port=5000, debug=False)
 
 
 if __name__ == "__main__":
